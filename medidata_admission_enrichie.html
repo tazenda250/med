@@ -1,0 +1,1031 @@
+
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<h2 class="sr-only">MediData Santé — Dossier d'admission enrichi avec examens complets</h2>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg-deep:#070d1a;--bg-card:#0d1628;--bg-card2:#111e35;--bg-surface:#162040;
+  --border:#1e2e50;--border-bright:#2a4080;
+  --blue:#1a6fff;--blue-light:#4d8fff;--blue-glow:rgba(26,111,255,0.18);
+  --cyan:#00c8e0;--cyan-glow:rgba(0,200,224,0.15);
+  --red-soft:#e05060;--green-soft:#00c896;--amber-soft:#f0a030;--purple:#a060ff;
+  --text-1:#e8eef8;--text-2:#8a9dc0;--text-3:#4a5e80;--white:#ffffff;
+}
+body{font-family:'Syne',sans-serif;background:var(--bg-deep);color:var(--text-1)}
+
+.topbar{background:var(--bg-card);border-bottom:1px solid var(--border);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;position:relative}
+.topbar::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--blue),var(--cyan),transparent)}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-logo{width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,var(--blue),var(--cyan));display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 0 16px var(--blue-glow)}
+.brand-name{font-size:17px;font-weight:800;letter-spacing:0.04em;color:var(--white)}
+.brand-name span{color:var(--cyan)}
+.brand-sub{font-size:10px;color:var(--text-3);letter-spacing:0.12em;text-transform:uppercase;margin-top:1px;font-family:'JetBrains Mono',monospace}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.pill{font-size:11px;padding:4px 10px;border-radius:20px;font-weight:500;font-family:'JetBrains Mono',monospace}
+.pill-blue{background:rgba(26,111,255,0.15);color:var(--blue-light);border:1px solid rgba(26,111,255,0.25)}
+.pill-green{background:rgba(0,200,150,0.12);color:var(--green-soft);border:1px solid rgba(0,200,150,0.2);display:flex;align-items:center;gap:5px}
+.pill-green::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green-soft);animation:blink 1.4s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+
+.nav{background:var(--bg-card);border-bottom:1px solid var(--border);padding:0 24px;display:flex;gap:2px}
+.nav-btn{padding:13px 14px;font-size:11px;font-weight:700;border:none;background:none;cursor:pointer;color:var(--text-3);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all 0.2s;display:flex;align-items:center;gap:6px;font-family:'Syne',sans-serif;letter-spacing:0.03em;text-transform:uppercase}
+.nav-btn:hover{color:var(--text-2);background:rgba(26,111,255,0.05)}
+.nav-btn.active{color:var(--cyan);border-bottom-color:var(--cyan);background:rgba(0,200,224,0.04)}
+.nav-tag{background:var(--blue);color:#fff;font-size:9px;padding:1px 5px;border-radius:8px;font-family:'JetBrains Mono',monospace}
+
+.section{display:none;padding:20px 24px;animation:slideUp 0.3s ease}
+.section.active{display:block}
+@keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+.s-head{margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.s-title{font-size:17px;font-weight:800;color:var(--white);letter-spacing:0.02em}
+.s-title span{color:var(--cyan)}
+.s-desc{font-size:11px;color:var(--text-3);margin-top:4px;font-family:'JetBrains Mono',monospace}
+
+/* STEPPER */
+.stepper{display:flex;gap:0;margin-bottom:20px;background:var(--bg-card);border-radius:12px;padding:6px;border:1px solid var(--border)}
+.step-btn{flex:1;padding:9px 8px;font-size:10px;font-weight:700;border:none;background:none;cursor:pointer;color:var(--text-3);border-radius:8px;transition:all 0.2s;font-family:'Syne',sans-serif;text-transform:uppercase;letter-spacing:0.05em;text-align:center;display:flex;align-items:center;justify-content:center;gap:5px}
+.step-btn:hover{color:var(--text-2);background:rgba(255,255,255,0.03)}
+.step-btn.active{background:var(--bg-surface);color:var(--cyan);border:1px solid var(--border-bright)}
+.step-num{width:18px;height:18px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;transition:background 0.2s}
+.step-btn.active .step-num{background:var(--cyan);color:#000}
+.step-btn.done .step-num{background:var(--green-soft);color:#000}
+.step-btn.done{color:var(--green-soft)}
+
+.form-step{display:none}
+.form-step.active{display:block;animation:slideUp 0.25s ease}
+
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:18px;transition:border-color 0.2s}
+.card:hover{border-color:var(--border-bright)}
+.card-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-3);margin-bottom:14px;display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace}
+.card-title::before{content:'';display:inline-block;width:3px;height:12px;background:var(--cyan);border-radius:2px;flex-shrink:0}
+
+.section-block{margin-bottom:20px}
+.block-label{font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--blue-light);margin-bottom:12px;padding:8px 12px;background:rgba(26,111,255,0.06);border-left:3px solid var(--blue);border-radius:0 6px 6px 0;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:8px}
+
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+
+label{font-size:11px;color:var(--text-3);display:block;margin-bottom:4px;margin-top:12px;font-weight:500;letter-spacing:0.04em;text-transform:uppercase;font-family:'JetBrains Mono',monospace}
+label:first-of-type,label.no-top{margin-top:0}
+input,select,textarea{width:100%;font-size:13px;padding:9px 12px;border:1px solid var(--border-bright);border-radius:9px;background:var(--bg-deep);color:var(--text-1);font-family:'Syne',sans-serif;transition:border-color 0.2s,box-shadow 0.2s;appearance:none}
+input::placeholder{color:var(--text-3)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,200,224,0.1)}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%234a5e80' d='M5 6L0 0h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+textarea{resize:vertical;min-height:68px;line-height:1.6}
+
+.range-wrap{display:flex;align-items:center;gap:10px}
+.range-wrap input[type=range]{flex:1;height:4px;accent-color:var(--cyan)}
+.range-val{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--cyan);min-width:48px;text-align:right}
+
+.checkbox-group{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.cb-item{display:flex;align-items:center;gap:6px;background:var(--bg-surface);border:1px solid var(--border);border-radius:8px;padding:6px 10px;cursor:pointer;transition:all 0.15s;font-size:12px;color:var(--text-2)}
+.cb-item:hover{border-color:var(--border-bright);color:var(--text-1)}
+.cb-item input[type=checkbox]{accent-color:var(--cyan);width:14px;height:14px}
+.cb-item.checked{border-color:var(--cyan);background:rgba(0,200,224,0.06);color:var(--cyan)}
+
+.ref-val{font-size:10px;color:var(--text-3);font-family:'JetBrains Mono',monospace;margin-top:3px}
+.abnormal input{border-color:var(--amber-soft) !important}
+.critical-field input{border-color:var(--red-soft) !important}
+
+.btn{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;font-size:11px;font-weight:700;border-radius:10px;cursor:pointer;transition:all 0.2s;font-family:'Syne',sans-serif;letter-spacing:0.06em;text-transform:uppercase}
+.btn-primary{background:linear-gradient(135deg,var(--blue),#1258cc);color:#fff;border:none;box-shadow:0 0 20px var(--blue-glow)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 0 30px rgba(26,111,255,0.35)}
+.btn-ghost{background:transparent;border:1px solid var(--border-bright);color:var(--text-2)}
+.btn-ghost:hover{border-color:var(--text-2);background:rgba(255,255,255,0.04)}
+.btn-cyan{background:rgba(0,200,224,0.1);border:1px solid rgba(0,200,224,0.3);color:var(--cyan)}
+.btn-cyan:hover{background:rgba(0,200,224,0.18)}
+.btn-sm{padding:6px 12px;font-size:10px;border-radius:8px}
+
+.table{width:100%;border-collapse:collapse;font-size:12px}
+.table thead tr{background:var(--bg-surface)}
+.table th{font-size:10px;font-weight:700;color:var(--text-3);text-align:left;padding:9px 10px;letter-spacing:0.08em;text-transform:uppercase;font-family:'JetBrains Mono',monospace}
+.table th:first-child{border-radius:8px 0 0 8px}
+.table th:last-child{border-radius:0 8px 8px 0}
+.table td{padding:9px 10px;border-bottom:1px solid var(--border);color:var(--text-1);font-size:11px}
+.table tr:last-child td{border:none}
+.table tbody tr:hover td{background:rgba(26,111,255,0.04)}
+
+.stag{display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:2px 7px;border-radius:6px;font-weight:700;letter-spacing:0.05em;font-family:'JetBrains Mono',monospace}
+.stag-green{background:rgba(0,200,150,0.12);color:var(--green-soft);border:1px solid rgba(0,200,150,0.2)}
+.stag-amber{background:rgba(240,160,48,0.12);color:var(--amber-soft);border:1px solid rgba(240,160,48,0.2)}
+.stag-red{background:rgba(224,80,96,0.12);color:var(--red-soft);border:1px solid rgba(224,80,96,0.2)}
+.stag-blue{background:rgba(26,111,255,0.12);color:var(--blue-light);border:1px solid rgba(26,111,255,0.2)}
+.stag-purple{background:rgba(160,96,255,0.12);color:var(--purple);border:1px solid rgba(160,96,255,0.2)}
+
+.kpi{background:var(--bg-card2);border:1px solid var(--border);border-radius:12px;padding:14px;position:relative;overflow:hidden;transition:transform 0.2s,border-color 0.2s}
+.kpi:hover{transform:translateY(-2px);border-color:var(--border-bright)}
+.kpi-val{font-size:24px;font-weight:800;color:var(--white);font-family:'JetBrains Mono',monospace;line-height:1}
+.kpi-lbl{font-size:10px;color:var(--text-3);margin-top:6px;text-transform:uppercase;letter-spacing:0.08em}
+.kpi-bar{position:absolute;bottom:0;left:0;height:2px;background:linear-gradient(90deg,var(--blue),var(--cyan))}
+
+.bar-row{display:flex;align-items:center;gap:10px;margin:8px 0}
+.bar-lbl{width:110px;color:var(--text-2);font-size:11px;flex-shrink:0}
+.bar-track{flex:1;height:6px;background:var(--border);border-radius:10px;overflow:hidden}
+.bar-fill{height:100%;border-radius:10px;transition:width 1.1s cubic-bezier(0.22,1,0.36,1)}
+.bar-v{width:44px;text-align:right;font-size:11px;color:var(--text-2);font-family:'JetBrains Mono',monospace}
+
+.stat-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px}
+.stat-row:last-child{border:none}
+.stat-lbl{color:var(--text-3);font-family:'JetBrains Mono',monospace;font-size:11px}
+.stat-val{font-weight:700;color:var(--white);font-family:'JetBrains Mono',monospace}
+
+.scatter{position:relative;width:100%;height:190px;background:var(--bg-deep);border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.scatter::before{content:'';position:absolute;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:40px 40px}
+.sdot{position:absolute;width:10px;height:10px;border-radius:50%;transform:translate(-50%,-50%);cursor:pointer;transition:transform 0.2s;box-shadow:0 0 6px currentColor}
+.sdot:hover{transform:translate(-50%,-50%) scale(2)}
+
+.alert{padding:12px 16px;border-radius:10px;font-size:12px;margin-bottom:14px;display:flex;align-items:center;gap:10px;font-family:'JetBrains Mono',monospace}
+.alert-info{background:rgba(26,111,255,0.08);color:var(--blue-light);border:1px solid rgba(26,111,255,0.2)}
+
+.divider{height:1px;background:var(--border);margin:18px 0}
+.leg-item{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text-3);margin:4px 0;font-family:'JetBrains Mono',monospace}
+.ldot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+.empty-state{text-align:center;padding:36px 20px}
+.empty-icon{font-size:36px;opacity:0.2;margin-bottom:10px}
+.empty-text{font-size:12px;color:var(--text-3);font-family:'JetBrains Mono',monospace}
+
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--bg-card2);color:var(--cyan);padding:11px 20px;border-radius:10px;font-size:12px;opacity:0;transition:all 0.3s;pointer-events:none;z-index:9999;border:1px solid rgba(0,200,224,0.25);box-shadow:0 0 24px var(--cyan-glow);font-family:'JetBrains Mono',monospace}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.progress-bar{height:3px;background:var(--border);border-radius:3px;margin-bottom:20px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--cyan));border-radius:3px;transition:width 0.4s ease}
+
+.recap-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.recap-item{background:var(--bg-surface);border-radius:8px;padding:10px 12px;border:1px solid var(--border)}
+.recap-label{font-size:10px;color:var(--text-3);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px}
+.recap-value{font-size:13px;font-weight:700;color:var(--white)}
+.recap-value.abnormal{color:var(--amber-soft)}
+.recap-value.critical{color:var(--red-soft)}
+
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--bg-deep)}
+::-webkit-scrollbar-thumb{background:var(--border-bright);border-radius:4px}
+</style>
+
+<div style="background:var(--bg-deep);min-height:600px">
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-logo">🩺</div>
+    <div>
+      <div class="brand-name">Medi<span>Data</span></div>
+      <div class="brand-sub">Dossier Clinique Complet · INF232</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <span class="pill pill-blue">CHU Yaoundé</span>
+    <span class="pill pill-green">Système actif</span>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="nav-btn active" onclick="showTab('collecte',this)">📋 Admission</button>
+  <button class="nav-btn" onclick="showTab('donnees',this)">🗄 Dossiers <span class="nav-tag" id="nav-count">0</span></button>
+  <button class="nav-btn" onclick="showTab('analyse',this)">📊 Analyse</button>
+  <button class="nav-btn" onclick="showTab('dashboard',this)">🏥 Tableau de bord</button>
+</div>
+
+<!-- ===== COLLECTE ===== -->
+<div id="collecte" class="section active">
+
+  <!-- Stepper -->
+  <div class="stepper">
+    <button class="step-btn active" id="stp0" onclick="goStep(0)"><span class="step-num">1</span>Identité</button>
+    <button class="step-btn" id="stp1" onclick="goStep(1)"><span class="step-num">2</span>Constantes</button>
+    <button class="step-btn" id="stp2" onclick="goStep(2)"><span class="step-num">3</span>Bilan bio</button>
+    <button class="step-btn" id="stp3" onclick="goStep(3)"><span class="step-num">4</span>Imagerie</button>
+    <button class="step-btn" id="stp4" onclick="goStep(4)"><span class="step-num">5</span>Diagnostic</button>
+    <button class="step-btn" id="stp5" onclick="goStep(5)"><span class="step-num">6</span>Récapitulatif</button>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progress" style="width:16.6%"></div></div>
+
+  <!-- ÉTAPE 1 : IDENTITÉ -->
+  <div class="form-step active" id="step0">
+    <div class="block-label">👤 Identification du patient</div>
+    <div class="g3">
+      <div>
+        <label class="no-top">Sexe</label>
+        <select id="f-sexe"><option>Masculin</option><option>Féminin</option></select>
+      </div>
+      <div>
+        <label class="no-top">Âge (ans)</label>
+        <input type="number" id="f-age" placeholder="ex: 34" min="0" max="120">
+      </div>
+      <div>
+        <label class="no-top">Groupe sanguin</label>
+        <select id="f-gsang"><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option><option>Inconnu</option></select>
+      </div>
+    </div>
+    <div class="g3" style="margin-top:12px">
+      <div>
+        <label>Statut matrimonial</label>
+        <select id="f-statut"><option>Célibataire</option><option>Marié(e)</option><option>Divorcé(e)</option><option>Veuf/Veuve</option></select>
+      </div>
+      <div>
+        <label>Profession</label>
+        <select id="f-prof"><option>Agriculteur</option><option>Commerçant</option><option>Fonctionnaire</option><option>Étudiant</option><option>Sans emploi</option><option>Autre</option></select>
+      </div>
+      <div>
+        <label>District sanitaire</label>
+        <select id="f-district"><option>Yaoundé I</option><option>Yaoundé II</option><option>Yaoundé III</option><option>Douala I</option><option>Douala IV</option><option>Bafoussam</option><option>Garoua</option><option>Maroua</option><option>Bertoua</option></select>
+      </div>
+    </div>
+    <div class="g2" style="margin-top:12px">
+      <div>
+        <label>Service / Spécialité</label>
+        <select id="f-service"><option>Médecine générale</option><option>Pédiatrie</option><option>Gynécologie</option><option>Cardiologie</option><option>Neurologie</option><option>Urgences</option><option>Chirurgie</option><option>Infectiologie</option><option>Pneumologie</option></select>
+      </div>
+      <div>
+        <label>Mode d'admission</label>
+        <select id="f-admission"><option>Consultation externe</option><option>Référé d'un CS</option><option>Urgences</option><option>Transfert inter-hospitalier</option><option>Maternité</option></select>
+      </div>
+    </div>
+    <div style="margin-top:12px">
+      <label>Antécédents médicaux</label>
+      <div class="checkbox-group" id="atcd-group">
+        <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="HTA"> HTA</label>
+        <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Diabète"> Diabète</label>
+        <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Asthme"> Asthme</label>
+        <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Drépanocytose"> Drépanocytose</label>
+        <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="VIH"> VIH</label>
+        <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Tuberculose"> Tuberculose</label>
+        <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Cardiopathie"> Cardiopathie</label>
+        <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Néphropathie"> Néphropathie</label>
+        <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Aucun"> Aucun</label>
+      </div>
+    </div>
+    <div style="margin-top:12px">
+      <label>Allergies connues</label>
+      <input type="text" id="f-allergie" placeholder="ex: Pénicilline, Aspirine, Latex... (laisser vide si aucune)">
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:18px">
+      <button class="btn btn-primary" onclick="goStep(1)">Suivant — Constantes vitales →</button>
+    </div>
+  </div>
+
+  <!-- ÉTAPE 2 : CONSTANTES VITALES -->
+  <div class="form-step" id="step1">
+    <div class="block-label">❤️ Constantes vitales à l'admission</div>
+    <div class="g4">
+      <div>
+        <label class="no-top">TA systolique (mmHg)</label>
+        <input type="number" id="f-tas" placeholder="120" min="60" max="250">
+        <div class="ref-val">Réf : 90–139 mmHg</div>
+      </div>
+      <div>
+        <label class="no-top">TA diastolique (mmHg)</label>
+        <input type="number" id="f-tad" placeholder="80" min="40" max="150">
+        <div class="ref-val">Réf : 60–89 mmHg</div>
+      </div>
+      <div>
+        <label class="no-top">Fréquence cardiaque (bpm)</label>
+        <input type="number" id="f-fc" placeholder="75" min="30" max="220">
+        <div class="ref-val">Réf : 60–100 bpm</div>
+      </div>
+      <div>
+        <label class="no-top">SpO₂ (%)</label>
+        <input type="number" id="f-spo2" placeholder="98" min="50" max="100">
+        <div class="ref-val">Réf : ≥ 95%</div>
+      </div>
+    </div>
+    <div class="g4" style="margin-top:12px">
+      <div>
+        <label class="no-top">Température (°C)</label>
+        <input type="number" id="f-temp" placeholder="37.2" min="33" max="43" step="0.1">
+        <div class="ref-val">Réf : 36.5–37.5 °C</div>
+      </div>
+      <div>
+        <label class="no-top">Fréq. respiratoire (/min)</label>
+        <input type="number" id="f-fr" placeholder="16" min="8" max="60">
+        <div class="ref-val">Réf : 12–20/min</div>
+      </div>
+      <div>
+        <label class="no-top">Glycémie capillaire (g/L)</label>
+        <input type="number" id="f-glyco" placeholder="1.0" min="0.2" max="6" step="0.1">
+        <div class="ref-val">Réf : 0.70–1.10 g/L</div>
+      </div>
+      <div>
+        <label class="no-top">Glasgow (3–15)</label>
+        <input type="number" id="f-glasgow" placeholder="15" min="3" max="15">
+        <div class="ref-val">Normal : 15</div>
+      </div>
+    </div>
+    <div class="block-label" style="margin-top:18px">📏 Anthropométrie</div>
+    <div class="g4">
+      <div>
+        <label class="no-top">Poids (kg)</label>
+        <input type="number" id="f-poids" placeholder="70" min="1" max="300" oninput="calcIMC()">
+      </div>
+      <div>
+        <label class="no-top">Taille (cm)</label>
+        <input type="number" id="f-taille" placeholder="170" min="30" max="250" oninput="calcIMC()">
+      </div>
+      <div>
+        <label class="no-top">IMC (calculé)</label>
+        <input type="text" id="f-imc" placeholder="—" readonly style="background:var(--bg-surface);color:var(--cyan)">
+        <div class="ref-val" id="imc-cat" style="color:var(--cyan)"></div>
+      </div>
+      <div>
+        <label class="no-top">Périmètre abdominal (cm)</label>
+        <input type="number" id="f-perabdo" placeholder="88" min="30" max="200">
+        <div class="ref-val">Réf H &lt;94 / F &lt;80 cm</div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:18px">
+      <button class="btn btn-ghost" onclick="goStep(0)">← Retour</button>
+      <button class="btn btn-primary" onclick="goStep(2)">Suivant — Bilan biologique →</button>
+    </div>
+  </div>
+
+  <!-- ÉTAPE 3 : BILAN BIOLOGIQUE -->
+  <div class="form-step" id="step2">
+    <div class="block-label">🔬 Numération Formule Sanguine (NFS)</div>
+    <div class="g4">
+      <div>
+        <label class="no-top">Hémoglobine (g/dL)</label>
+        <input type="number" id="f-hb" placeholder="13.5" min="2" max="25" step="0.1">
+        <div class="ref-val">H: 13–17 / F: 12–16 g/dL</div>
+      </div>
+      <div>
+        <label class="no-top">Hématocrite (%)</label>
+        <input type="number" id="f-ht" placeholder="42" min="10" max="70" step="0.1">
+        <div class="ref-val">H: 40–52 / F: 36–48%</div>
+      </div>
+      <div>
+        <label class="no-top">Globules blancs (× 10³/µL)</label>
+        <input type="number" id="f-gb" placeholder="7.5" min="0.5" max="50" step="0.1">
+        <div class="ref-val">Réf : 4.5–11 × 10³/µL</div>
+      </div>
+      <div>
+        <label class="no-top">Plaquettes (× 10³/µL)</label>
+        <input type="number" id="f-plaq" placeholder="250" min="10" max="1000">
+        <div class="ref-val">Réf : 150–400 × 10³/µL</div>
+      </div>
+    </div>
+
+    <div class="block-label" style="margin-top:16px">🧪 Bilan biochimique</div>
+    <div class="g4">
+      <div>
+        <label class="no-top">Glycémie veineuse (g/L)</label>
+        <input type="number" id="f-glycv" placeholder="1.0" min="0.2" max="8" step="0.01">
+        <div class="ref-val">Réf : 0.70–1.10 g/L</div>
+      </div>
+      <div>
+        <label class="no-top">Créatinine (µmol/L)</label>
+        <input type="number" id="f-creat" placeholder="80" min="20" max="1200">
+        <div class="ref-val">H: 62–115 / F: 53–97</div>
+      </div>
+      <div>
+        <label class="no-top">Urée (mmol/L)</label>
+        <input type="number" id="f-uree" placeholder="5.0" min="0.5" max="50" step="0.1">
+        <div class="ref-val">Réf : 2.5–7.5 mmol/L</div>
+      </div>
+      <div>
+        <label class="no-top">Sodium Na⁺ (mEq/L)</label>
+        <input type="number" id="f-na" placeholder="140" min="100" max="180">
+        <div class="ref-val">Réf : 136–145 mEq/L</div>
+      </div>
+    </div>
+    <div class="g4" style="margin-top:12px">
+      <div>
+        <label class="no-top">Potassium K⁺ (mEq/L)</label>
+        <input type="number" id="f-k" placeholder="4.0" min="1" max="9" step="0.1">
+        <div class="ref-val">Réf : 3.5–5.0 mEq/L</div>
+      </div>
+      <div>
+        <label class="no-top">ALAT / TGP (UI/L)</label>
+        <input type="number" id="f-alat" placeholder="30" min="5" max="2000">
+        <div class="ref-val">Réf : H &lt;41 / F &lt;31 UI/L</div>
+      </div>
+      <div>
+        <label class="no-top">ASAT / TGO (UI/L)</label>
+        <input type="number" id="f-asat" placeholder="25" min="5" max="2000">
+        <div class="ref-val">Réf : H &lt;40 / F &lt;35 UI/L</div>
+      </div>
+      <div>
+        <label class="no-top">Bilirubine tot. (µmol/L)</label>
+        <input type="number" id="f-bili" placeholder="12" min="0" max="500" step="0.1">
+        <div class="ref-val">Réf : &lt;20 µmol/L</div>
+      </div>
+    </div>
+
+    <div class="block-label" style="margin-top:16px">🦟 Tests rapides & sérologies</div>
+    <div class="g4">
+      <div>
+        <label class="no-top">TDR Paludisme</label>
+        <select id="f-tdr-palu"><option>Non fait</option><option>Négatif</option><option>Positif Pf</option><option>Positif Pv</option><option>Positif mixte</option></select>
+      </div>
+      <div>
+        <label class="no-top">Sérologie VIH</label>
+        <select id="f-vih"><option>Non fait</option><option>Négatif</option><option>Positif</option><option>Indéterminé</option></select>
+      </div>
+      <div>
+        <label class="no-top">ECBU</label>
+        <select id="f-ecbu"><option>Non fait</option><option>Négatif</option><option>Infection urinaire</option><option>Contamination</option></select>
+      </div>
+      <div>
+        <label class="no-top">CRP (mg/L)</label>
+        <input type="number" id="f-crp" placeholder="5" min="0" max="500">
+        <div class="ref-val">Réf : &lt;5 mg/L</div>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;margin-top:18px">
+      <button class="btn btn-ghost" onclick="goStep(1)">← Retour</button>
+      <button class="btn btn-primary" onclick="goStep(3)">Suivant — Imagerie & ECG →</button>
+    </div>
+  </div>
+
+  <!-- ÉTAPE 4 : IMAGERIE & ECG -->
+  <div class="form-step" id="step3">
+    <div class="block-label">🩻 Radiologie & Imagerie médicale</div>
+    <div class="g2">
+      <div>
+        <label class="no-top">Radio pulmonaire (RX thorax)</label>
+        <select id="f-rx-thorax">
+          <option>Non réalisée</option><option>Normale</option><option>Condensation alvéolaire</option>
+          <option>Épanchement pleural</option><option>Cardiomégalie</option><option>Syndrome interstitiel</option>
+          <option>Caverne(s)</option><option>Pneumothorax</option>
+        </select>
+      </div>
+      <div>
+        <label class="no-top">Échographie abdominale</label>
+        <select id="f-echo-abdo">
+          <option>Non réalisée</option><option>Normale</option><option>Hépatomégalie</option>
+          <option>Splénomégalie</option><option>Lithiase vésiculaire</option><option>Ascite</option>
+          <option>Masse abdominale</option><option>Dilatation des voies urinaires</option>
+        </select>
+      </div>
+    </div>
+    <div class="g2" style="margin-top:12px">
+      <div>
+        <label>TDM (scanner)</label>
+        <select id="f-tdm">
+          <option>Non réalisé</option><option>Normal</option><option>AVC ischémique</option>
+          <option>AVC hémorragique</option><option>Masse cérébrale</option><option>Fracture</option>
+          <option>Embolie pulmonaire</option><option>Pathologie abdominale</option>
+        </select>
+      </div>
+      <div>
+        <label>Échographie obstétricale</label>
+        <select id="f-echo-obs">
+          <option>Non applicable</option><option>Grossesse normale</option><option>Grossesse pathologique</option>
+          <option>Grossesse extra-utérine</option><option>Mort fœtale in utero</option><option>Anomalie fœtale</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="block-label" style="margin-top:16px">💓 Électrocardiogramme (ECG)</div>
+    <div class="g3">
+      <div>
+        <label class="no-top">Rythme</label>
+        <select id="f-ecg-rythme"><option>Non réalisé</option><option>Sinusal normal</option><option>Tachycardie sinusale</option><option>Bradycardie sinusale</option><option>Fibrillation auriculaire</option><option>Flutter auriculaire</option><option>Extrasystoles</option></select>
+      </div>
+      <div>
+        <label class="no-top">Anomalies ECG</label>
+        <select id="f-ecg-anomalie"><option>Aucune</option><option>HVG</option><option>BBG</option><option>BBD</option><option>Ischémie</option><option>Nécrose (IDM)</option><option>QT long</option></select>
+      </div>
+      <div>
+        <label class="no-top">Fréquence à l'ECG (bpm)</label>
+        <input type="number" id="f-ecg-fc" placeholder="75" min="20" max="300">
+      </div>
+    </div>
+
+    <div class="block-label" style="margin-top:16px">🧠 Examens neurologiques & autres</div>
+    <div class="g3">
+      <div>
+        <label class="no-top">Fond d'œil</label>
+        <select id="f-fdo"><option>Non réalisé</option><option>Normal</option><option>Rétinopathie HTA</option><option>Rétinopathie diabétique</option><option>Œdème papillaire</option></select>
+      </div>
+      <div>
+        <label class="no-top">Examen LCR (PL)</label>
+        <select id="f-lcr"><option>Non réalisé</option><option>Normal</option><option>Méningite bactérienne</option><option>Méningite virale</option><option>Hémorragie méningée</option></select>
+      </div>
+      <div>
+        <label class="no-top">EFR (spirométrie)</label>
+        <select id="f-efr"><option>Non réalisée</option><option>Normale</option><option>Syndrome obstructif</option><option>Syndrome restrictif</option><option>Syndrome mixte</option></select>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;margin-top:18px">
+      <button class="btn btn-ghost" onclick="goStep(2)">← Retour</button>
+      <button class="btn btn-primary" onclick="goStep(4)">Suivant — Diagnostic & Issue →</button>
+    </div>
+  </div>
+
+  <!-- ÉTAPE 5 : DIAGNOSTIC & TRAITEMENT -->
+  <div class="form-step" id="step4">
+    <div class="block-label">🏷️ Diagnostic & prise en charge</div>
+    <div class="g2">
+      <div>
+        <label class="no-top">Diagnostic principal (CIM-10)</label>
+        <select id="f-diag">
+          <option>Paludisme grave</option><option>Paludisme simple</option>
+          <option>Hypertension artérielle</option><option>Diabète type 2</option><option>Diabète type 1</option>
+          <option>Infection respiratoire basse</option><option>Pneumonie</option><option>Tuberculose pulmonaire</option>
+          <option>Anémie sévère</option><option>Drépanocytose (crise)</option>
+          <option>Méningite</option><option>AVC</option><option>Insuffisance cardiaque</option>
+          <option>Insuffisance rénale</option><option>Sepsis</option><option>Traumatisme</option>
+          <option>Diarrhée aiguë</option><option>Fièvre typhoïde</option>
+        </select>
+      </div>
+      <div>
+        <label class="no-top">Diagnostic secondaire</label>
+        <input type="text" id="f-diag2" placeholder="ex: HTA + Diabète, Anémie associée...">
+      </div>
+    </div>
+    <div class="g3" style="margin-top:12px">
+      <div>
+        <label>Niveau de gravité</label>
+        <select id="f-gravite"><option>Léger</option><option>Modéré</option><option>Grave</option><option>Critique</option></select>
+      </div>
+      <div>
+        <label>Durée hospitalisation (jours)</label>
+        <input type="number" id="f-duree" placeholder="5" min="0" max="365">
+      </div>
+      <div>
+        <label>Issue clinique</label>
+        <select id="f-issue"><option>Guérison</option><option>Amélioration</option><option>Stationnaire</option><option>Décès</option><option>Référé</option></select>
+      </div>
+    </div>
+
+    <div class="block-label" style="margin-top:16px">💊 Traitements administrés</div>
+    <div class="checkbox-group">
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Antipaludéens"> Antipaludéens</label>
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Antibiotiques"> Antibiotiques</label>
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Antihypertenseurs"> Antihypertenseurs</label>
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Insuline"> Insuline</label>
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Antidiabétiques oraux"> ADO</label>
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Corticoïdes"> Corticoïdes</label>
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Transfusion"> Transfusion</label>
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Chirurgie"> Chirurgie</label>
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Réanimation"> Réanimation</label>
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Oxygénothérapie"> Oxygénothérapie</label>
+    </div>
+
+    <div class="block-label" style="margin-top:16px">💰 Aspects administratifs</div>
+    <div class="g3">
+      <div>
+        <label class="no-top">Coût prise en charge (FCFA)</label>
+        <input type="number" id="f-cout" placeholder="45000" min="0">
+      </div>
+      <div>
+        <label class="no-top">Mode de paiement</label>
+        <select id="f-paiement"><option>Espèces</option><option>CENAME / Mutuelle</option><option>Assurance maladie</option><option>Gratuité (indigent)</option><option>Prise en charge État</option></select>
+      </div>
+      <div>
+        <label class="no-top">Satisfaction patient (1–5)</label>
+        <input type="number" id="f-satisfaction" placeholder="4" min="1" max="5">
+      </div>
+    </div>
+    <label>Observations du praticien</label>
+    <textarea id="f-obs" placeholder="Évolution clinique, complications, recommandations à la sortie, suivi préconisé..."></textarea>
+
+    <div style="display:flex;justify-content:space-between;margin-top:18px">
+      <button class="btn btn-ghost" onclick="goStep(3)">← Retour</button>
+      <button class="btn btn-cyan" onclick="goStep(5)">Voir récapitulatif →</button>
+    </div>
+  </div>
+
+  <!-- ÉTAPE 6 : RÉCAP -->
+  <div class="form-step" id="step5">
+    <div class="block-label">✅ Récapitulatif du dossier</div>
+    <div id="recap-content"></div>
+    <div style="display:flex;justify-content:space-between;margin-top:18px;gap:10px">
+      <button class="btn btn-ghost" onclick="goStep(4)">← Modifier</button>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-ghost" onclick="viderForm()">↺ Tout effacer</button>
+        <button class="btn btn-primary" onclick="soumettre()">💾 Enregistrer le dossier complet</button>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:10px;text-align:right">
+    <span id="fb" style="font-size:11px;color:var(--cyan);opacity:0;transition:opacity 0.3s;font-family:'JetBrains Mono',monospace"></span>
+  </div>
+</div>
+
+<!-- ===== DONNEES ===== -->
+<div id="donnees" class="section">
+  <div class="s-head">
+    <div class="s-title">Base de données <span>patients</span></div>
+    <div class="s-desc">// Dossiers complets — filtrables & exportables</div>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+    <div style="display:flex;gap:8px">
+      <select id="f-fdiag" onchange="filtrer()" style="width:160px;font-size:11px;padding:7px 10px"><option value="">Tous diagnostics</option><option>Paludisme grave</option><option>Hypertension artérielle</option><option>Diabète type 2</option><option>Pneumonie</option><option>Tuberculose pulmonaire</option><option>Anémie sévère</option></select>
+      <select id="f-fservice" onchange="filtrer()" style="width:140px;font-size:11px;padding:7px 10px"><option value="">Tous services</option><option>Médecine générale</option><option>Pédiatrie</option><option>Cardiologie</option><option>Urgences</option></select>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇ Export CSV</button>
+  </div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table class="table">
+      <thead><tr>
+        <th>N°</th><th>Sexe/Âge</th><th>Service</th><th>Diagnostic</th><th>TA</th><th>Hb</th><th>TDR Palu</th><th>Gravité</th><th>Issue</th>
+      </tr></thead>
+      <tbody id="data-tbody"></tbody>
+    </table>
+    <div class="empty-state" id="data-empty">
+      <div class="empty-icon">🩺</div>
+      <div class="empty-text">Aucun dossier enregistré.<br>Utilisez l'onglet Admission.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ANALYSE ===== -->
+<div id="analyse" class="section">
+  <div class="s-head">
+    <div class="s-title">Analyse <span>descriptive</span></div>
+    <div class="s-desc">// Statistiques, distributions, corrélations cliniques</div>
+  </div>
+  <div id="analyse-empty" class="alert alert-info">ℹ Enregistrez au moins 3 dossiers pour générer l'analyse.</div>
+  <div id="analyse-content" style="display:none">
+    <div class="g4" id="kpi-grid"></div>
+    <div class="divider"></div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-title">Distribution — Hémoglobine (g/dL)</div>
+        <canvas id="chart-hb" height="165"></canvas>
+      </div>
+      <div class="card">
+        <div class="card-title">Fréquence par diagnostic</div>
+        <div id="bar-diag"></div>
+      </div>
+    </div>
+    <div class="g2" style="margin-top:14px">
+      <div class="card">
+        <div class="card-title">Répartition par service</div>
+        <canvas id="chart-service" height="175"></canvas>
+        <div id="leg-service" style="margin-top:10px;columns:2"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Statistiques — Tension artérielle systolique</div>
+        <div id="stats-box"></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <div class="card-title">Nuage de points — Âge vs TA systolique (coloré par issue)</div>
+      <div class="scatter" id="scatter"></div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px">
+        <div class="leg-item"><span class="ldot" style="background:#00c896"></span>Guérison</div>
+        <div class="leg-item"><span class="ldot" style="background:#f0a030"></span>Amélioration</div>
+        <div class="leg-item"><span class="ldot" style="background:#e05060"></span>Décès</div>
+        <div class="leg-item"><span class="ldot" style="background:#1a6fff"></span>Référé</div>
+        <div class="leg-item"><span class="ldot" style="background:#8a9dc0"></span>Stationnaire</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== DASHBOARD ===== -->
+<div id="dashboard" class="section">
+  <div class="s-head">
+    <div class="s-title">Tableau de <span>bord</span></div>
+    <div class="s-desc">// Indicateurs épidémiologiques et performance clinique</div>
+  </div>
+  <div id="db-empty" class="alert alert-info">ℹ Enregistrez des dossiers pour afficher le tableau de bord.</div>
+  <div id="db-content" style="display:none">
+    <div class="g4" id="db-kpi"></div>
+    <div class="g2" style="margin-top:14px">
+      <div class="card">
+        <div class="card-title">Cas critiques — TA &gt;140 mmHg</div>
+        <table class="table"><thead><tr><th>Sexe/Âge</th><th>Diagnostic</th><th>TA</th><th>Gravité</th><th>Issue</th></tr></thead><tbody id="critical-tbody"></tbody></table>
+        <div id="critical-empty" style="display:none" class="empty-state"><div class="empty-icon">✅</div><div class="empty-text">Aucun cas critique</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Répartition des issues cliniques</div>
+        <canvas id="chart-issues" height="175"></canvas>
+        <div id="leg-issues" style="margin-top:10px;columns:2"></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <div class="card-title">Durée moyenne d'hospitalisation par diagnostic</div>
+      <div id="duree-bars"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="toast" id="toast">✓ <span id="toast-msg">Enregistré</span></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+let records=JSON.parse(localStorage.getItem('medi2_records')||'[]');
+let charts={};
+let currentStep=0;
+const TOTAL_STEPS=6;
+const PAL=['#1a6fff','#00c8e0','#00c896','#f0a030','#e05060','#a060ff','#ff6060','#60d0ff'];
+const issueCols={'Guérison':'#00c896','Amélioration':'#f0a030','Décès':'#e05060','Référé':'#1a6fff','Stationnaire':'#8a9dc0'};
+
+function upCount(){document.getElementById('nav-count').textContent=records.length}
+upCount();
+
+function showToast(msg){
+  document.getElementById('toast-msg').textContent=msg;
+  const t=document.getElementById('toast');t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+function showTab(id,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');btn.classList.add('active');
+  if(id==='donnees')renderTable(records);
+  if(id==='analyse')renderAnalyse();
+  if(id==='dashboard')renderDashboard();
+}
+
+function goStep(n){
+  document.querySelectorAll('.form-step').forEach((s,i)=>s.classList.toggle('active',i===n));
+  document.querySelectorAll('.step-btn').forEach((b,i)=>{
+    b.classList.remove('active','done');
+    if(i===n)b.classList.add('active');
+    else if(i<n)b.classList.add('done');
+  });
+  currentStep=n;
+  document.getElementById('progress').style.width=((n+1)/TOTAL_STEPS*100)+'%';
+  if(n===5)buildRecap();
+}
+
+function toggleCb(el){el.classList.toggle('checked',el.querySelector('input').checked)}
+
+function calcIMC(){
+  const p=parseFloat(document.getElementById('f-poids').value);
+  const t=parseFloat(document.getElementById('f-taille').value)/100;
+  if(p&&t){
+    const imc=(p/t/t).toFixed(1);
+    document.getElementById('f-imc').value=imc;
+    const cat=imc<18.5?'Insuffisance pondérale':imc<25?'Poids normal':imc<30?'Surpoids':imc<35?'Obésité modérée':'Obésité sévère';
+    const catCol=imc<18.5?'var(--amber-soft)':imc<25?'var(--green-soft)':imc<30?'var(--amber-soft)':'var(--red-soft)';
+    const catEl=document.getElementById('imc-cat');
+    catEl.textContent=cat;catEl.style.color=catCol;
+  }
+}
+
+function getAtcd(){return [...document.querySelectorAll('#atcd-group input:checked')].map(e=>e.value).join(', ')||'Aucun'}
+function getTraitements(){return [...document.querySelectorAll('.form-step:nth-child(5) .checkbox-group input:checked')].map(e=>e.value).join(', ')||'Aucun'}
+
+function buildRecap(){
+  const data=collectFormData();
+  const flagTA=data.tas>139?'critical':data.tas>119?'abnormal':'';
+  const flagHb=(data.hb>0&&data.hb<12)?'abnormal':'';
+  const flagGlyc=(data.glycv>0&&(data.glycv<0.7||data.glycv>1.1))?'abnormal':'';
+  document.getElementById('recap-content').innerHTML=`
+    <div class="recap-grid">
+      <div class="recap-item"><div class="recap-label">Patient</div><div class="recap-value">${data.sexe}, ${data.age} ans — ${data.gsang}</div></div>
+      <div class="recap-item"><div class="recap-label">Service</div><div class="recap-value">${data.service}</div></div>
+      <div class="recap-item"><div class="recap-label">TA systolique</div><div class="recap-value ${flagTA}">${data.tas||'—'} mmHg</div></div>
+      <div class="recap-item"><div class="recap-label">Hémoglobine</div><div class="recap-value ${flagHb}">${data.hb||'—'} g/dL</div></div>
+      <div class="recap-item"><div class="recap-label">Glycémie</div><div class="recap-value ${flagGlyc}">${data.glycv||'—'} g/L</div></div>
+      <div class="recap-item"><div class="recap-label">TDR Paludisme</div><div class="recap-value ${data.tdrPalu.includes('Positif')?'critical':''}">${data.tdrPalu}</div></div>
+      <div class="recap-item"><div class="recap-label">Diagnostic</div><div class="recap-value">${data.diag}</div></div>
+      <div class="recap-item"><div class="recap-label">Gravité</div><div class="recap-value ${data.gravite==='Critique'?'critical':data.gravite==='Grave'?'abnormal':''}">${data.gravite}</div></div>
+      <div class="recap-item"><div class="recap-label">RX Thorax</div><div class="recap-value">${data.rxThorax}</div></div>
+      <div class="recap-item"><div class="recap-label">ECG</div><div class="recap-value">${data.ecgRythme}</div></div>
+      <div class="recap-item"><div class="recap-label">Traitements</div><div class="recap-value" style="font-size:11px">${data.traitements}</div></div>
+      <div class="recap-item"><div class="recap-label">Issue prévue</div><div class="recap-value ${data.issue==='Décès'?'critical':''}">${data.issue}</div></div>
+    </div>`;
+}
+
+function collectFormData(){
+  return{
+    sexe:document.getElementById('f-sexe').value,
+    age:parseFloat(document.getElementById('f-age').value)||0,
+    gsang:document.getElementById('f-gsang').value,
+    statut:document.getElementById('f-statut').value,
+    prof:document.getElementById('f-prof').value,
+    district:document.getElementById('f-district').value,
+    service:document.getElementById('f-service').value,
+    admission:document.getElementById('f-admission').value,
+    atcd:getAtcd(),
+    allergie:document.getElementById('f-allergie').value||'Aucune',
+    tas:parseFloat(document.getElementById('f-tas').value)||0,
+    tad:parseFloat(document.getElementById('f-tad').value)||0,
+    fc:parseFloat(document.getElementById('f-fc').value)||0,
+    spo2:parseFloat(document.getElementById('f-spo2').value)||0,
+    temp:parseFloat(document.getElementById('f-temp').value)||0,
+    fr:parseFloat(document.getElementById('f-fr').value)||0,
+    glyco:parseFloat(document.getElementById('f-glyco').value)||0,
+    glasgow:parseFloat(document.getElementById('f-glasgow').value)||15,
+    poids:parseFloat(document.getElementById('f-poids').value)||0,
+    taille:parseFloat(document.getElementById('f-taille').value)||0,
+    imc:parseFloat(document.getElementById('f-imc').value)||0,
+    perabdo:parseFloat(document.getElementById('f-perabdo').value)||0,
+    hb:parseFloat(document.getElementById('f-hb').value)||0,
+    ht:parseFloat(document.getElementById('f-ht').value)||0,
+    gb:parseFloat(document.getElementById('f-gb').value)||0,
+    plaq:parseFloat(document.getElementById('f-plaq').value)||0,
+    glycv:parseFloat(document.getElementById('f-glycv').value)||0,
+    creat:parseFloat(document.getElementById('f-creat').value)||0,
+    uree:parseFloat(document.getElementById('f-uree').value)||0,
+    na:parseFloat(document.getElementById('f-na').value)||0,
+    k:parseFloat(document.getElementById('f-k').value)||0,
+    alat:parseFloat(document.getElementById('f-alat').value)||0,
+    asat:parseFloat(document.getElementById('f-asat').value)||0,
+    bili:parseFloat(document.getElementById('f-bili').value)||0,
+    tdrPalu:document.getElementById('f-tdr-palu').value,
+    vih:document.getElementById('f-vih').value,
+    ecbu:document.getElementById('f-ecbu').value,
+    crp:parseFloat(document.getElementById('f-crp').value)||0,
+    rxThorax:document.getElementById('f-rx-thorax').value,
+    echoAbdo:document.getElementById('f-echo-abdo').value,
+    tdm:document.getElementById('f-tdm').value,
+    echoObs:document.getElementById('f-echo-obs').value,
+    ecgRythme:document.getElementById('f-ecg-rythme').value,
+    ecgAnomalie:document.getElementById('f-ecg-anomalie').value,
+    ecgFc:parseFloat(document.getElementById('f-ecg-fc').value)||0,
+    fdo:document.getElementById('f-fdo').value,
+    lcr:document.getElementById('f-lcr').value,
+    efr:document.getElementById('f-efr').value,
+    diag:document.getElementById('f-diag').value,
+    diag2:document.getElementById('f-diag2').value,
+    gravite:document.getElementById('f-gravite').value,
+    duree:parseFloat(document.getElementById('f-duree').value)||0,
+    issue:document.getElementById('f-issue').value,
+    traitements:getTraitements(),
+    cout:parseFloat(document.getElementById('f-cout').value)||0,
+    paiement:document.getElementById('f-paiement').value,
+    satisfaction:parseFloat(document.getElementById('f-satisfaction').value)||0,
+    obs:document.getElementById('f-obs').value
+  };
+}
+
+function soumettre(){
+  const d=collectFormData();
+  if(!d.age||!d.tas){
+    const fb=document.getElementById('fb');
+    fb.style.color='var(--red-soft)';fb.textContent='⚠ Âge et tension artérielle obligatoires';fb.style.opacity='1';
+    setTimeout(()=>fb.style.opacity='0',3000);return;
+  }
+  records.push({id:Date.now(),...d});
+  localStorage.setItem('medi2_records',JSON.stringify(records));
+  upCount();showToast('Dossier #'+records.length+' enregistré avec succès');
+  viderForm();goStep(0);
+  const fb=document.getElementById('fb');
+  fb.style.color='var(--cyan)';fb.textContent='✓ Dossier complet créé';fb.style.opacity='1';
+  setTimeout(()=>fb.style.opacity='0',2500);
+}
+
+function viderForm(){
+  document.querySelectorAll('input[type=number],input[type=text]').forEach(i=>{if(!i.readOnly)i.value=''});
+  document.querySelectorAll('textarea').forEach(t=>t.value='');
+  document.querySelectorAll('.cb-item').forEach(c=>{c.classList.remove('checked');c.querySelector('input').checked=false});
+  document.getElementById('f-imc').value='';document.getElementById('imc-cat').textContent='';
+}
+
+function renderTable(data){
+  const tbody=document.getElementById('data-tbody');
+  const empty=document.getElementById('data-empty');
+  if(!data.length){tbody.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  tbody.innerHTML=data.map((r,i)=>`
+    <tr>
+      <td style="color:var(--text-3);font-family:'JetBrains Mono',monospace">${String(i+1).padStart(3,'0')}</td>
+      <td style="font-family:'JetBrains Mono',monospace">${r.sexe==='Masculin'?'♂':'♀'} ${r.age}a</td>
+      <td><span class="stag stag-blue" style="font-size:9px">${r.service.split(' ')[0]}</span></td>
+      <td style="font-size:11px">${r.diag}</td>
+      <td style="font-family:'JetBrains Mono',monospace;color:${r.tas>140?'var(--red-soft)':r.tas>120?'var(--amber-soft)':'var(--green-soft)'}">${r.tas||'—'}</td>
+      <td style="font-family:'JetBrains Mono',monospace;color:${r.hb>0&&r.hb<12?'var(--amber-soft)':'var(--text-1)'}">${r.hb||'—'}</td>
+      <td><span class="stag ${r.tdrPalu.includes('Positif')?'stag-red':'stag-blue'}" style="font-size:9px">${r.tdrPalu.replace('Non fait','—')}</span></td>
+      <td><span class="stag ${r.gravite==='Critique'?'stag-red':r.gravite==='Grave'?'stag-amber':r.gravite==='Modéré'?'stag-blue':'stag-green'}">${r.gravite}</span></td>
+      <td><span class="stag ${r.issue==='Guérison'?'stag-green':r.issue==='Décès'?'stag-red':r.issue==='Amélioration'?'stag-amber':'stag-blue'}">${r.issue}</span></td>
+    </tr>`).join('');
+}
+
+function filtrer(){
+  const fd=document.getElementById('f-fdiag').value;
+  const fs=document.getElementById('f-fservice').value;
+  let d=records;
+  if(fd)d=d.filter(r=>r.diag===fd);
+  if(fs)d=d.filter(r=>r.service===fs);
+  renderTable(d);
+}
+
+function exportCSV(){
+  if(!records.length){showToast('Aucune donnée à exporter');return;}
+  const h=['Sexe','Age','Gsang','Service','District','TAS','TAD','FC','SpO2','Temp','Glasgow','IMC','Hb','GB','Plaq','GlycV','Creat','CRP','TDR_Palu','VIH','RX_Thorax','ECG','Diagnostic','Gravite','Duree','Issue','Cout','Paiement'];
+  const rows=records.map(r=>[r.sexe,r.age,r.gsang,r.service,r.district,r.tas,r.tad,r.fc,r.spo2,r.temp,r.glasgow,r.imc,r.hb,r.gb,r.plaq,r.glycv,r.creat,r.crp,r.tdrPalu,r.vih,r.rxThorax,r.ecgRythme,r.diag,r.gravite,r.duree,r.issue,r.cout,r.paiement].join(','));
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent([h.join(','),...rows].join('\n'));
+  a.download='medidata_complet.csv';a.click();showToast('Export CSV effectué');
+}
+
+function calcStats(arr){
+  const s=arr.filter(v=>v>0).sort((a,b)=>a-b),n=s.length;
+  if(!n)return{n:0,mean:0,med:0,sd:0,cv:'0',min:0,max:0};
+  const mean=s.reduce((a,b)=>a+b,0)/n;
+  const med=n%2===0?(s[n/2-1]+s[n/2])/2:s[Math.floor(n/2)];
+  const sd=Math.sqrt(s.reduce((a,b)=>a+(b-mean)**2,0)/n);
+  return{n,mean:+mean.toFixed(1),med:+med.toFixed(1),sd:+sd.toFixed(1),cv:+(sd/(mean||1)*100).toFixed(1),min:s[0],max:s[n-1]};
+}
+
+function renderAnalyse(){
+  const empty=document.getElementById('analyse-empty');
+  const content=document.getElementById('analyse-content');
+  if(records.length<3){empty.style.display='flex';content.style.display='none';return;}
+  empty.style.display='none';content.style.display='block';
+
+  const tensions=records.map(r=>r.tas).filter(v=>v>0);
+  const hbs=records.map(r=>r.hb).filter(v=>v>0);
+  const st=calcStats(tensions);
+  const hta=records.filter(r=>r.tas>140).length;
+  const anemie=records.filter(r=>r.hb>0&&r.hb<12).length;
+  const paluPos=records.filter(r=>r.tdrPalu&&r.tdrPalu.includes('Positif')).length;
+
+  document.getElementById('kpi-grid').innerHTML=`
+    <div class="kpi"><div class="kpi-val">${records.length}</div><div class="kpi-lbl">Dossiers</div><div class="kpi-bar" style="width:100%"></div></div>
+    <div class="kpi"><div class="kpi-val">${st.mean}</div><div class="kpi-lbl">TA moy. (mmHg)</div><div class="kpi-bar" style="width:${Math.min(st.mean/200*100,100)}%"></div></div>
+    <div class="kpi"><div class="kpi-val">${anemie}</div><div class="kpi-lbl">Anémies (Hb&lt;12)</div><div class="kpi-bar" style="width:${Math.round(anemie/records.length*100)}%;background:var(--amber-soft)"></div></div>
+    <div class="kpi"><div class="kpi-val">${paluPos}</div><div class="kpi-lbl">Paludisme +</div><div class="kpi-bar" style="width:${Math.round(paluPos/records.length*100)}%;background:var(--red-soft)"></div></div>`;
+
+  document.getElementById('stats-box').innerHTML=[
+    ['n',st.n],['Min',st.min+' mmHg'],['Max',st.max+' mmHg'],
+    ['Moyenne',st.mean+' mmHg'],['Médiane',st.med+' mmHg'],
+    ['Écart-type',st.sd],['Coeff. variation',st.cv+'%']
+  ].map(([l,v])=>`<div class="stat-row"><span class="stat-lbl">${l}</span><span class="stat-val">${v}</span></div>`).join('');
+
+  const diags={};records.forEach(r=>{diags[r.diag]=(diags[r.diag]||0)+1;});
+  const maxD=Math.max(...Object.values(diags));
+  document.getElementById('bar-diag').innerHTML=Object.entries(diags).sort((a,b)=>b[1]-a[1]).map(([d,n],i)=>{
+    const pct=Math.round(n/maxD*100);
+    return`<div class="bar-row"><span class="bar-lbl" style="font-size:10px">${d.split(' ')[0]}</span><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${PAL[i%PAL.length]}"></div></div><span class="bar-v">${n}</span></div>`;
+  }).join('');
+
+  if(charts.hb){charts.hb.destroy();}
+  const hbBins=[0,7,9,11,13,15,17,20];
+  const hbBl=hbBins.slice(0,-1).map((_,i)=>`${hbBins[i]}-${hbBins[i+1]}`);
+  const hbBc=hbBl.map((_,i)=>hbs.filter(v=>v>=hbBins[i]&&v<hbBins[i+1]).length);
+  const hbColors=hbBl.map((_,i)=>hbBins[i]<12?'rgba(224,80,96,0.7)':'rgba(0,200,150,0.7)');
+  const ctx1=document.getElementById('chart-hb').getContext('2d');
+  charts.hb=new Chart(ctx1,{type:'bar',data:{labels:hbBl,datasets:[{data:hbBc,backgroundColor:hbColors,borderRadius:5,borderWidth:0}]},options:{plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9},color:'#4a5e80'},grid:{display:false}},y:{ticks:{stepSize:1,font:{size:9},color:'#4a5e80'},grid:{color:'rgba(30,46,80,0.8)'}}}}});
+
+  if(charts.serv){charts.serv.destroy();}
+  const servs={};records.forEach(r=>{servs[r.service]=(servs[r.service]||0)+1;});
+  const ctx2=document.getElementById('chart-service').getContext('2d');
+  charts.serv=new Chart(ctx2,{type:'doughnut',data:{labels:Object.keys(servs),datasets:[{data:Object.values(servs),backgroundColor:PAL,borderWidth:2,borderColor:'#0d1628'}]},options:{plugins:{legend:{display:false}},cutout:'60%'}});
+  document.getElementById('leg-service').innerHTML=Object.entries(servs).map(([k,v],i)=>`<div class="leg-item"><span class="ldot" style="background:${PAL[i%PAL.length]}"></span>${k.split(' ')[0]} (${v})</div>`).join('');
+
+  const sp=document.getElementById('scatter');
+  const maxA=Math.max(...records.map(r=>r.age),1);
+  const minTA=Math.min(...records.filter(r=>r.tas).map(r=>r.tas),60);
+  const maxTA=Math.max(...records.filter(r=>r.tas).map(r=>r.tas),200);
+  sp.innerHTML=records.filter(r=>r.age&&r.tas).map(r=>{
+    const x=Math.round(r.age/Math.max(maxA,80)*86+4);
+    const y=Math.round((1-(r.tas-minTA)/(maxTA-minTA||1))*82+6);
+    const c=issueCols[r.issue]||'#8a9dc0';
+    return`<div class="sdot" style="left:${x}%;top:${y}%;background:${c};color:${c}" title="${r.diag} — ${r.age}a — TA:${r.tas} — ${r.issue}"></div>`;
+  }).join('');
+}
+
+function renderDashboard(){
+  const e=document.getElementById('db-empty'),c=document.getElementById('db-content');
+  if(!records.length){e.style.display='flex';c.style.display='none';return;}
+  e.style.display='none';c.style.display='block';
+
+  const avgAge=+(records.reduce((a,b)=>a+b.age,0)/records.length).toFixed(1);
+  const coutRecs=records.filter(r=>r.cout>0);
+  const avgCout=coutRecs.length?Math.round(coutRecs.reduce((a,b)=>a+b.cout,0)/coutRecs.length):0;
+  const guerisons=records.filter(r=>r.issue==='Guérison').length;
+  const txG=Math.round(guerisons/records.length*100);
+  const avgDuree=+(records.filter(r=>r.duree>0).reduce((a,b,_,arr)=>a+b.duree/arr.length,0)).toFixed(1);
+
+  document.getElementById('db-kpi').innerHTML=`
+    <div class="kpi"><div class="kpi-val">${avgAge}</div><div class="kpi-lbl">Âge moyen (ans)</div><div class="kpi-bar"></div></div>
+    <div class="kpi"><div class="kpi-val">${txG}%</div><div class="kpi-lbl">Taux guérison</div><div class="kpi-bar" style="width:${txG}%;background:var(--green-soft)"></div></div>
+    <div class="kpi"><div class="kpi-val">${avgDuree||'—'}j</div><div class="kpi-lbl">Durée moy. hospit.</div><div class="kpi-bar" style="width:${Math.min((avgDuree||0)*6,100)}%"></div></div>
+    <div class="kpi"><div class="kpi-val">${(avgCout/1000).toFixed(0)}k</div><div class="kpi-lbl">Coût moyen FCFA</div><div class="kpi-bar" style="width:60%;background:var(--cyan)"></div></div>`;
+
+  const critiques=records.filter(r=>r.tas>140).slice(0,8);
+  const critTbody=document.getElementById('critical-tbody');
+  const critEmpty=document.getElementById('critical-empty');
+  if(!critiques.length){critTbody.innerHTML='';critEmpty.style.display='block';}
+  else{
+    critEmpty.style.display='none';
+    critTbody.innerHTML=critiques.map(r=>`<tr>
+      <td style="font-family:'JetBrains Mono',monospace">${r.sexe==='Masculin'?'♂':'♀'} ${r.age}a</td>
+      <td style="font-size:10px">${r.diag}</td>
+      <td style="font-family:'JetBrains Mono',monospace;color:var(--red-soft)">${r.tas}</td>
+      <td><span class="stag ${r.gravite==='Critique'?'stag-red':r.gravite==='Grave'?'stag-amber':'stag-blue'}">${r.gravite}</span></td>
+      <td><span class="stag ${r.issue==='Décès'?'stag-red':r.issue==='Guérison'?'stag-green':'stag-amber'}">${r.issue}</span></td>
+    </tr>`).join('');
+  }
+
+  if(charts.iss){charts.iss.destroy();}
+  const issues={};records.forEach(r=>{issues[r.issue]=(issues[r.issue]||0)+1;});
+  const ctx3=document.getElementById('chart-issues').getContext('2d');
+  charts.iss=new Chart(ctx3,{type:'doughnut',data:{labels:Object.keys(issues),datasets:[{data:Object.values(issues),backgroundColor:Object.keys(issues).map(k=>issueCols[k]||'#888'),borderWidth:2,borderColor:'#0d1628'}]},options:{plugins:{legend:{display:false}},cutout:'60%'}});
+  document.getElementById('leg-issues').innerHTML=Object.entries(issues).map(([k,v])=>`<div class="leg-item"><span class="ldot" style="background:${issueCols[k]||'#888'}"></span>${k} (${v})</div>`).join('');
+
+  const dd={};records.forEach(r=>{if(r.duree>0){if(!dd[r.diag])dd[r.diag]=[];dd[r.diag].push(r.duree);}});
+  const maxDD=Math.max(...Object.values(dd).map(a=>a.reduce((x,y)=>x+y,0)/a.length),1);
+  document.getElementById('duree-bars').innerHTML=Object.entries(dd).sort((a,b)=>(b[1].reduce((x,y)=>x+y,0)/b[1].length)-(a[1].reduce((x,y)=>x+y,0)/a[1].length)).map(([d,arr],i)=>{
+    const avg=+(arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1);
+    const pct=Math.round(avg/maxDD*100);
+    return`<div class="bar-row"><span class="bar-lbl" style="font-size:10px">${d.split(' ').slice(0,2).join(' ')}</span><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${PAL[i%PAL.length]}"></div></div><span class="bar-v">${avg}j</span></div>`;
+  }).join('');
+}
+</script>
